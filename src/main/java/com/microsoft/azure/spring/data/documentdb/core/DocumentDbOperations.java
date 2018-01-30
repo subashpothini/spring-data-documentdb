@@ -55,8 +55,7 @@ public interface DocumentDbOperations {
                     Object id,
                     String partitionKeyFieldValue);
 
-    <T> void deleteById(String collectionName,
-                        Object id,
+    <T> void deleteById(Object id,
                         Class<T> domainClass,
                         String partitionKeyFieldValue);
 

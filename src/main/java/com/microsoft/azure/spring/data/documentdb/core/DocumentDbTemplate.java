@@ -11,6 +11,8 @@ import com.microsoft.azure.documentdb.internal.HttpConstants;
 import com.microsoft.azure.spring.data.documentdb.DocumentDbFactory;
 import com.microsoft.azure.spring.data.documentdb.core.convert.MappingDocumentDbConverter;
 import com.microsoft.azure.spring.data.documentdb.core.query.Query;
+import com.microsoft.azure.spring.data.documentdb.repository.support.DocumentDbEntityInformation;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -21,6 +23,7 @@ import org.springframework.util.Assert;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class DocumentDbTemplate implements DocumentDbOperations, ApplicationContextAware {
     private static final Logger LOGGER = LoggerFactory.getLogger(DocumentDbTemplate.class);
@@ -95,7 +98,6 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
                           Object id,
                           Class<T> entityClass,
                           String partitionKeyFieldValue) {
-
         try {
             final Resource resource = documentDbFactory.getDocumentClient()
                     .readDocument(getDocumentLink(this.databaseName, collectionName, (String) id),
@@ -311,10 +313,13 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
     }
 
-    public <T> void deleteById(String collectionName,
-                               Object id,
+    public <T> void deleteById(Object id,
                                Class<T> domainClass,
                                String partitionKeyFieldValue) {
+        partitionKeyValueMustCheck(partitionKeyFieldValue, domainClass);
+
+        final String collectionName = getCollectionName(domainClass);
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("execute deleteById in database {} collection {}", this.databaseName, collectionName);
         }
@@ -323,9 +328,17 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             documentDbFactory.getDocumentClient().deleteDocument(
                     getDocumentLink(this.databaseName, collectionName, id.toString()),
                     getRequestOptions(partitionKeyFieldValue, null));
-
         } catch (DocumentClientException ex) {
             throw new RuntimeException("deleteById exception", ex);
+        }
+    }
+
+    private <T> void partitionKeyValueMustCheck(String partitionKeyValue, Class<T> domainClass) {
+        if (StringUtils.isEmpty(partitionKeyValue) && getPartitionKeyField(domainClass).isPresent()) {
+            throw new UnsupportedOperationException(
+                    String.format("PartitionKeyValue is required for partitioned collection of domain class [%s], " +
+                                    "consider query with custom query.",
+                            domainClass.getName()));
         }
     }
 
@@ -377,10 +390,18 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         }
 
         final FeedOptions feedOptions = new FeedOptions();
-        feedOptions.setEnableCrossPartitionQuery(true);
+        final Optional<Object> partitionKeyOp = getPartitionKeyValue(query, domainClass);
+
+        if (partitionKeyOp.isPresent()) {
+            feedOptions.setPartitionKey(new PartitionKey(partitionKeyOp.get()));
+        } else {
+            feedOptions.setEnableCrossPartitionQuery(true);
+        }
+
         final List<Document> results = documentDbFactory.getDocumentClient()
                 .queryDocuments(collections.get(0).getSelfLink(),
-                        sqlQuerySpec, feedOptions)
+                        sqlQuerySpec, feedOptions,
+                        partitionKeyOp.isPresent() ? partitionKeyOp.get() : null)
                 .getQueryIterable().toList();
 
         final List<T> entities = new ArrayList<>();
@@ -390,6 +411,37 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             entities.add(entity);
         }
         return entities;
+    }
+
+    private <T> Optional<Object> getPartitionKeyValue(Query query, Class<T> domainClass) {
+        if (query == null) {
+            return Optional.empty();
+        }
+
+        final Optional<String> partitionKeyName = getPartitionKeyField(domainClass);
+        if (!partitionKeyName.isPresent()) {
+            return Optional.empty();
+        }
+
+        final Map<String, Object> criteria = query.getCriteria();
+        // TODO (wepa) Only one partition key value is supported now
+        final Optional<String> matchedKey = criteria.keySet().stream()
+                        .filter(key -> partitionKeyName.get().equals(key)).findFirst();
+
+        if (!matchedKey.isPresent()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(criteria.get(matchedKey.get()));
+    }
+
+    private <T> Optional<String> getPartitionKeyField(Class<T> domainClass) {
+        final DocumentDbEntityInformation entityInfo = new DocumentDbEntityInformation(domainClass);
+        if (entityInfo.getPartitionKeyFieldName() == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(entityInfo.getPartitionKeyFieldName());
     }
 
     private static SqlQuerySpec createSqlQuerySpec(Query query) {

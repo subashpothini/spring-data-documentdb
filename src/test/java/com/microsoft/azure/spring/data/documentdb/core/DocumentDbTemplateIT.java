@@ -100,8 +100,7 @@ public class DocumentDbTemplateIT {
     public void testFindAllPartition() {
         setupPartition();
 
-        final List<Person> result = dbTemplate.findAll(Person.class.getSimpleName(),
-                Person.class, PARTITION_KEY, TEST_PERSON.getLastName());
+        final List<Person> result = dbTemplate.findAll(Person.class, PARTITION_KEY, TEST_PERSON.getLastName());
 
         assertThat(result.size()).isEqualTo(1);
         assertThat(result.get(0)).isEqualTo(TEST_PERSON);
@@ -109,12 +108,10 @@ public class DocumentDbTemplateIT {
 
     @Test
     public void testFindById() {
-        final Person result = dbTemplate.findById(Person.class.getSimpleName(),
-                TEST_PERSON.getId(), Person.class, null);
+        final Person result = dbTemplate.findById(TEST_PERSON.getId(), Person.class, null);
         assertTrue(result.equals(TEST_PERSON));
 
-        final Person nullResult = dbTemplate.findById(Person.class.getSimpleName(),
-                TEST_NOTEXIST_ID, Person.class, null);
+        final Person nullResult = dbTemplate.findById(TEST_NOTEXIST_ID, Person.class, null);
         assertThat(nullResult).isNull();
     }
 
@@ -122,19 +119,17 @@ public class DocumentDbTemplateIT {
     public void testFindByIdPartition() {
         setupPartition();
 
-        final Person result = dbTemplate.findById(Person.class.getSimpleName(),
-                TEST_PERSON.getId(), Person.class, TEST_PERSON.getLastName());
+        final Person result = dbTemplate.findById(TEST_PERSON.getId(), Person.class, TEST_PERSON.getLastName());
         assertTrue(result.equals(TEST_PERSON));
 
-        final Person nullResult = dbTemplate.findById(Person.class.getSimpleName(),
-                TEST_NOTEXIST_ID, Person.class, TEST_PERSON.getLastName());
+        final Person nullResult = dbTemplate.findById(TEST_NOTEXIST_ID, Person.class, TEST_PERSON.getLastName());
         assertThat(nullResult).isNull();
     }
 
     @Test
     public void testUpsertNewDocument() {
         // Delete first as was inserted in setup
-        dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON.getId(), Person.class, null);
+        dbTemplate.deleteById(TEST_PERSON.getId(), Person.class, null);
 
         final String firstName = "newFirstName_" + UUID.randomUUID().toString();
         final Person newPerson = new Person(null, firstName, "newLastName", null, null);
@@ -150,8 +145,7 @@ public class DocumentDbTemplateIT {
     @Test
     public void testUpsertNewDocumentPartition() {
         // Delete first as was inserted in setup
-        dbTemplate.deleteById(Person.class.getSimpleName(),
-                TEST_PERSON.getId(), Person.class, null);
+        dbTemplate.deleteById( TEST_PERSON.getId(), Person.class, null);
 
         setupPartition();
 
@@ -173,8 +167,7 @@ public class DocumentDbTemplateIT {
                 TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
         dbTemplate.upsert(Person.class.getSimpleName(), updated, updated.getId(), null);
 
-        final Person result = dbTemplate.findById(Person.class.getSimpleName(),
-                updated.getId(), Person.class, null);
+        final Person result = dbTemplate.findById(updated.getId(), Person.class, null);
 
         assertTrue(result.equals(updated));
     }
@@ -186,8 +179,7 @@ public class DocumentDbTemplateIT {
                 TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
         dbTemplate.upsert(Person.class.getSimpleName(), updated, updated.getId(), updated.getLastName());
 
-        final Person result = dbTemplate.findById(Person.class.getSimpleName(),
-                updated.getId(), Person.class, updated.getLastName());
+        final Person result = dbTemplate.findById(updated.getId(), Person.class, updated.getLastName());
 
         assertTrue(result.equals(updated));
     }
@@ -198,7 +190,7 @@ public class DocumentDbTemplateIT {
         dbTemplate.insert(person2, null);
         assertThat(dbTemplate.findAll(Person.class, null, null).size()).isEqualTo(2);
 
-        dbTemplate.deleteById(Person.class.getSimpleName(), TEST_PERSON.getId(), null, null);
+        dbTemplate.deleteById(TEST_PERSON.getId(), null, null);
 
         final List<Person> result = dbTemplate.findAll(Person.class, null, null);
         assertThat(result.size()).isEqualTo(1);
@@ -215,8 +207,7 @@ public class DocumentDbTemplateIT {
 
         assertThat(dbTemplate.findAll(Person.class, PARTITION_KEY, person2.getLastName()).size()).isEqualTo(2);
 
-        dbTemplate.deleteById(Person.class.getSimpleName(),
-                TEST_PERSON.getId(), Person.class, TEST_PERSON.getLastName());
+        dbTemplate.deleteById(TEST_PERSON.getId(), Person.class, TEST_PERSON.getLastName());
 
         final List<Person> result = dbTemplate.findAll(Person.class, PARTITION_KEY, person2.getLastName());
         assertThat(result.size()).isEqualTo(1);

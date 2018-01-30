@@ -8,6 +8,11 @@ package com.microsoft.azure.spring.data.documentdb.repository;
 import com.microsoft.azure.spring.data.documentdb.domain.Address;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface AddressRepository extends DocumentDbRepository<Address, String> {
+    List<Address> findByCity(String city);
+
+    void deleteByPostalCodeAndCity(String id, String city);
 }

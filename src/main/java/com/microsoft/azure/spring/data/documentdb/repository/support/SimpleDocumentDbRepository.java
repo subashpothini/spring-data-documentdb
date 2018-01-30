@@ -123,8 +123,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
     @Override
     public T findOne(ID id) {
         Assert.notNull(id, "id must not be null");
-        return documentDbOperations.findById(
-                entityInformation.getCollectionName(), id, entityInformation.getJavaType(), null);
+        return documentDbOperations.findById(id, entityInformation.getJavaType(), null);
     }
 
     /**
@@ -144,10 +143,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public void delete(ID id) {
-        documentDbOperations.deleteById(entityInformation.getCollectionName(),
-                id,
-                entityInformation.getJavaType(),
-                null);
+        documentDbOperations.deleteById(id, entityInformation.getJavaType(), null);
     }
 
     /**
@@ -157,10 +153,7 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      */
     @Override
     public void delete(T entity) {
-        documentDbOperations.deleteById(entityInformation.getCollectionName(),
-                entityInformation.getId(entity),
-                entityInformation.getJavaType(),
-                null);
+        documentDbOperations.deleteById(entityInformation.getId(entity), entityInformation.getJavaType(), null);
     }
 
     /**
@@ -200,12 +193,12 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      * @param partitionKeyValue
      * @return
      */
-    public List<T> findAll(String partitionKeyValue) {
-        return documentDbOperations.findAll(entityInformation.getCollectionName(),
-                entityInformation.getJavaType(),
-                entityInformation.getPartitionKeyFieldName(),
-                partitionKeyValue);
-    }
+//    public List<T> findAll(String partitionKeyValue) {
+//        return documentDbOperations.findAll(entityInformation.getCollectionName(),
+//                entityInformation.getJavaType(),
+//                entityInformation.getPartitionKeyFieldName(),
+//                partitionKeyValue);
+//    }
 
     /**
      * find one entity per id with partitions
@@ -214,16 +207,16 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      * @param partitionKeyValue
      * @return
      */
-    public T findOne(ID id, String partitionKeyValue) {
-        Assert.notNull(id, "id must not be null");
-        Assert.notNull(partitionKeyValue, "partitionKeyValue must not be null");
-
-        return documentDbOperations.findById(
-                entityInformation.getCollectionName(),
-                id,
-                entityInformation.getJavaType(),
-                partitionKeyValue);
-    }
+//    public T findOne(ID id, String partitionKeyValue) {
+//        Assert.notNull(id, "id must not be null");
+//        Assert.notNull(partitionKeyValue, "partitionKeyValue must not be null");
+//
+//        return documentDbOperations.findById(
+//                entityInformation.getCollectionName(),
+//                id,
+//                entityInformation.getJavaType(),
+//                partitionKeyValue);
+//    }
 
     /**
      * delete an entity per id with partitions
@@ -231,13 +224,13 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      * @param id
      * @param partitionKeyValue
      */
-    public void delete(ID id, String partitionKeyValue) {
-        documentDbOperations.deleteById(entityInformation.getCollectionName(),
-                id,
-                entityInformation.getJavaType(),
-                partitionKeyValue);
-
-    }
+//    public void delete(ID id, String partitionKeyValue) {
+//        documentDbOperations.deleteById(entityInformation.getCollectionName(),
+//                id,
+//                entityInformation.getJavaType(),
+//                partitionKeyValue);
+//
+//    }
 
     /**
      * delete an entity with partitions
@@ -245,10 +238,10 @@ public class SimpleDocumentDbRepository<T, ID extends Serializable> implements D
      * @param entity
      * @param partitionKeyValue
      */
-    public void delete(T entity, String partitionKeyValue) {
-        documentDbOperations.deleteById(entityInformation.getCollectionName(),
-                entityInformation.getId(entity),
-                entityInformation.getJavaType(),
-                partitionKeyValue);
-    }
+//    public void delete(T entity, String partitionKeyValue) {
+//        documentDbOperations.deleteById(entityInformation.getCollectionName(),
+//                entityInformation.getId(entity),
+//                entityInformation.getJavaType(),
+//                partitionKeyValue);
+//    }
 }
