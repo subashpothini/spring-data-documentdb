@@ -42,11 +42,17 @@ public interface DocumentDbQueryExecution {
     }
 
     final class DeleteExecution implements DocumentDbQueryExecution {
+        private final DocumentDbOperations operations;
+
+        public DeleteExecution(DocumentDbOperations operations) {
+            this.operations = operations;
+        }
 
         @Override
         public Object execute(Query query, Class<?> type, String collection) {
             // deletion not supported yet
-            throw new NotImplementedException();
+            return operations.delete(query, type, collection);
+//            throw new NotImplementedException();
         }
     }
 }

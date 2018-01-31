@@ -193,6 +193,27 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         return entities;
     }
 
+    public <T> List<T> delete(Query query, Class<T> entityClass, String collectionName) {
+        final List<T> result = find(query, entityClass, collectionName);
+
+        final  RequestOptions options = new RequestOptions();
+        final Optional<Object> partitionKeyValue = getPartitionKeyValue(query, entityClass);
+        if (partitionKeyValue.isPresent()) {
+            options.setPartitionKey(new PartitionKey(partitionKeyValue.get()));
+        }
+
+        for(T document : result) {
+            try {
+                documentDbFactory.getDocumentClient().deleteDocument(((Document) document).getSelfLink(), options);
+            }catch (DocumentClientException e) {
+                throw new IllegalStateException(
+                        String.format("Failed to delete document [{}]", ((Document) document).getSelfLink()), e);
+            }
+        }
+
+        return result;
+    }
+
     public void deleteAll(String collectionName) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("execute deleteCollection in database {} collection {} with id {}",

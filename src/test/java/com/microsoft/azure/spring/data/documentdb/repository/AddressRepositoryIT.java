@@ -65,7 +65,7 @@ public class AddressRepositoryIT {
         long count = repository.count();
         assertThat(count).isEqualTo(4);
 
-        repository.deleteByPostalCodeAndCity(TEST_ADDRESS1_PARTITION1.getPostalCode(), TEST_ADDRESS1_PARTITION1.getCity());
+        repository.deleteByStreet(TEST_ADDRESS1_PARTITION1.getPostalCode(), TEST_ADDRESS1_PARTITION1.getCity());
 
         final List<Address> result = toList(repository.findAll());
 

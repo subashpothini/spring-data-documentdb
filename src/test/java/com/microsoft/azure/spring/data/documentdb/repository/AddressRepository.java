@@ -14,5 +14,5 @@ import java.util.List;
 public interface AddressRepository extends DocumentDbRepository<Address, String> {
     List<Address> findByCity(String city);
 
-    void deleteByPostalCodeAndCity(String id, String city);
+    void deleteByStreet(String id, String city);
 }

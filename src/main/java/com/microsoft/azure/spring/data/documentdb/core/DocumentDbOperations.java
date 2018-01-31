@@ -55,6 +55,8 @@ public interface DocumentDbOperations {
                     Object id,
                     String partitionKeyFieldValue);
 
+    <T> List<T> delete(Query query, Class<T> entityClass, String collectionName);
+
     <T> void deleteById(Object id,
                         Class<T> domainClass,
                         String partitionKeyFieldValue);
